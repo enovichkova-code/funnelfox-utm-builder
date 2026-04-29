@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FunnelFox · UTM Builder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #fafaf7;
+    --panel: #ffffff;
+    --ink: #0d0d0d;
+    --ink-soft: #4a4a4a;
+    --ink-muted: #8a8a8a;
+    --line: #ececec;
+    --line-strong: #d6d6d6;
+    --accent: #ff5c1a;
+    --accent-soft: #fff1ea;
+    --ok: #15803d;
+    --ok-soft: #e8f5ed;
+    --warn: #b45309;
+    --warn-soft: #fff5e6;
+    --bad: #b91c1c;
+    --bad-soft: #fdecec;
+    --mono: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    --sans: 'Geist', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--ink);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 32px 28px 80px;
+  }
+  header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 28px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--line);
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .brand-mark {
+    width: 36px;
+    height: 36px;
+    background: var(--ink);
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 18px;
+    border-radius: 8px;
+    letter-spacing: -0.5px;
+  }
+  .brand-text { line-height: 1.15; }
+  .brand-text .label { font-size: 11px; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 1.2px; font-weight: 500; }
+  .brand-text h1 { margin: 2px 0 0; font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
+  .pattern-hint {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-muted);
+    background: var(--panel);
+    border: 1px solid var(--line);
+    padding: 6px 10px;
+    border-radius: 6px;
+    align-self: center;
+  }
+  .pattern-hint b { color: var(--ink); font-weight: 500; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 440px;
+    gap: 24px;
+    align-items: start;
+  }
+  @media (max-width: 920px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 22px 24px;
+  }
+  .panel + .panel { margin-top: 16px; }
+
+  .section-label {
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--ink-muted);
+    font-weight: 600;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-label .req {
+    color: var(--accent);
+  }
+  .section-label .hint {
+    font-size: 10.5px;
+    color: var(--ink-muted);
+    text-transform: none;
+    letter-spacing: 0;
+    font-weight: 400;
+    margin-left: auto;
+  }
+
+  input[type=text], input[type=url] {
+    width: 100%;
+    border: 1px solid var(--line-strong);
+    background: #fff;
+    border-radius: 8px;
+    padding: 11px 13px;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--ink);
+    transition: border-color 0.12s, box-shadow 0.12s;
+  }
+  input[type=text]:focus, input[type=url]:focus {
+    outline: none;
+    border-color: var(--ink);
+    box-shadow: 0 0 0 3px rgba(13,13,13,0.06);
+  }
+
+  .pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .pill {
+    border: 1px solid var(--line-strong);
+    background: #fff;
+    color: var(--ink-soft);
+    border-radius: 999px;
+    padding: 7px 13px;
+    font-size: 12.5px;
+    font-family: var(--mono);
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.12s;
+    line-height: 1;
+  }
+  .pill:hover { border-color: var(--ink); color: var(--ink); }
+  .pill.active {
+    background: var(--ink);
+    color: #fff;
+    border-color: var(--ink);
+  }
+  .pill.accent.active {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+  .pill.tiny { padding: 5px 10px; font-size: 11.5px; }
+
+  .channel-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  @media (max-width: 540px) {
+    .channel-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  .channel-btn {
+    border: 1px solid var(--line-strong);
+    background: #fff;
+    border-radius: 9px;
+    padding: 11px 12px;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.12s;
+    font-family: var(--sans);
+  }
+  .channel-btn:hover { border-color: var(--ink); }
+  .channel-btn.active {
+    border-color: var(--ink);
+    background: var(--ink);
+    color: #fff;
+  }
+  .channel-btn .name {
+    display: block;
+    font-size: 12.5px;
+    font-weight: 600;
+    line-height: 1.25;
+  }
+  .channel-btn .meta {
+    display: block;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--ink-muted);
+    margin-top: 4px;
+  }
+  .channel-btn.active .meta { color: rgba(255,255,255,0.55); }
+
+  .field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  @media (max-width: 540px) { .field-row { grid-template-columns: 1fr; } }
+
+  .conditional {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px dashed var(--line);
+  }
+
+  .preview {
+    position: sticky;
+    top: 16px;
+  }
+  .url-block {
+    background: #0d0d0d;
+    color: #fff;
+    border-radius: 12px;
+    padding: 18px 20px;
+    font-family: var(--mono);
+    font-size: 12px;
+    word-break: break-all;
+    line-height: 1.6;
+    position: relative;
+  }
+  .url-block .scheme { color: #a3a3a3; }
+  .url-block .key { color: #ffb898; }
+  .url-block .val { color: #fff; }
+  .url-block .empty { color: #6b6b6b; font-style: italic; }
+  .url-block .amp { color: #6b6b6b; }
+
+  .params-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 16px;
+  }
+  .params-table th, .params-table td {
+    text-align: left;
+    padding: 8px 0;
+    font-size: 12.5px;
+    border-bottom: 1px solid var(--line);
+  }
+  .params-table th {
+    font-size: 10.5px;
+    color: var(--ink-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 500;
+    width: 110px;
+  }
+  .params-table td {
+    font-family: var(--mono);
+    color: var(--ink);
+  }
+  .params-table td.muted { color: var(--ink-muted); font-style: italic; font-family: var(--sans); font-size: 12px; }
+
+  .copy-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 14px;
+  }
+  button.copy {
+    flex: 1;
+    border: 1px solid var(--ink);
+    background: var(--ink);
+    color: #fff;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.12s;
+  }
+  button.copy.secondary {
+    background: #fff;
+    color: var(--ink);
+  }
+  button.copy:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
+  button.copy.copied { background: var(--ok); border-color: var(--ok); color: #fff; }
+
+  .hubspot-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 10px;
+    border-radius: 999px;
+    font-size: 11.5px;
+    font-weight: 500;
+    font-family: var(--mono);
+  }
+  .hubspot-tag.ok { background: var(--ok-soft); color: var(--ok); }
+  .hubspot-tag.warn { background: var(--warn-soft); color: var(--warn); }
+  .hubspot-tag.bad { background: var(--bad-soft); color: var(--bad); }
+  .hubspot-tag .dot { width: 6px; height: 6px; border-radius: 999px; background: currentColor; }
+
+  .meta-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+    font-size: 12px;
+    color: var(--ink-muted);
+  }
+  .meta-row b { color: var(--ink); font-weight: 500; }
+
+  .campaign-preview {
+    background: var(--accent-soft);
+    border: 1px solid #ffd9c2;
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-top: 12px;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .campaign-preview .label-mini {
+    font-family: var(--sans);
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--ink-muted);
+    margin-bottom: 4px;
+  }
+
+  .footnote {
+    font-size: 11.5px;
+    color: var(--ink-muted);
+    margin-top: 8px;
+    line-height: 1.5;
+  }
+
+  .author-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+  }
+  @media (max-width: 540px) { .author-grid { grid-template-columns: repeat(2, 1fr); } }
+  .author-btn {
+    border: 1px solid var(--line-strong);
+    background: #fff;
+    border-radius: 7px;
+    padding: 8px 10px;
+    cursor: pointer;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--ink-soft);
+    transition: all 0.12s;
+    text-align: left;
+  }
+  .author-btn:hover { border-color: var(--ink); color: var(--ink); }
+  .author-btn.active { background: var(--ink); color: #fff; border-color: var(--ink); }
+
+  .reset-link {
+    background: none;
+    border: none;
+    color: var(--ink-muted);
+    font-size: 11.5px;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    padding: 0;
+    font-family: var(--sans);
+  }
+  .reset-link:hover { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="brand">
+      <div class="brand-mark">F</div>
+      <div class="brand-text">
+        <div class="label">FunnelFox · Internal</div>
+        <h1>UTM Builder</h1>
+      </div>
+    </div>
+    <div class="pattern-hint">
+      <b>utm_campaign</b> = [channel]_[type]_[topic]_[geo]_[lang]
+    </div>
+  </header>
+
+  <div class="grid">
+
+    <!-- LEFT: FORM -->
+    <div>
+
+      <!-- DESTINATION -->
+      <div class="panel">
+        <div class="section-label">Destination URL <span class="req">*</span></div>
+        <input type="url" id="destUrl" value="https://funnelfox.com/" placeholder="https://funnelfox.com/...">
+        <div class="footnote">Where the click should land. Slugs without leading slash also work.</div>
+      </div>
+
+      <!-- CHANNEL -->
+      <div class="panel">
+        <div class="section-label">Channel <span class="req">*</span><span class="hint">drives utm_source + utm_medium</span></div>
+        <div class="channel-grid" id="channelGrid"></div>
+      </div>
+
+      <!-- CONDITIONAL FIELDS -->
+      <div class="panel" id="conditionalPanel" style="display:none;">
+        <div class="section-label" id="conditionalLabel"></div>
+        <div id="conditionalBody"></div>
+      </div>
+
+      <!-- CAMPAIGN COMPONENTS -->
+      <div class="panel">
+        <div class="section-label">Campaign topic <span class="req">*</span><span class="hint">main thing the campaign is about</span></div>
+        <div class="pills" id="topicPills"></div>
+        <div style="margin-top: 10px;">
+          <input type="text" id="customTopic" placeholder="or type custom topic (lowercase, hyphens)" style="font-size:12.5px;">
+        </div>
+
+        <div class="conditional">
+          <div class="field-row">
+            <div>
+              <div class="section-label">GEO <span class="hint">optional</span></div>
+              <div class="pills" id="geoPills">
+                <span class="pill tiny active" data-geo="">global</span>
+                <span class="pill tiny" data-geo="us">us</span>
+                <span class="pill tiny" data-geo="eu">eu</span>
+                <span class="pill tiny" data-geo="latam">latam</span>
+                <span class="pill tiny" data-geo="apac">apac</span>
+                <span class="pill tiny" data-geo="uk">uk</span>
+              </div>
+            </div>
+            <div>
+              <div class="section-label">Language <span class="hint">EN omitted</span></div>
+              <div class="pills" id="langPills">
+                <span class="pill tiny active" data-lang="">en</span>
+                <span class="pill tiny" data-lang="ru">ru</span>
+                <span class="pill tiny" data-lang="es">es</span>
+                <span class="pill tiny" data-lang="pt">pt</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- OPTIONAL CONTENT/TERM -->
+      <div class="panel">
+        <div class="section-label">utm_content <span class="hint">ad variant, slot, author</span></div>
+        <input type="text" id="utmContent" placeholder="e.g. carousel-v2, hero-banner, andrey-shakhtin">
+        <div class="footnote">For LinkedIn employee posts, the author auto-fills here. Override anything you need.</div>
+
+        <div class="conditional">
+          <div class="section-label">utm_term <span class="hint">audience or keyword, mostly ads</span></div>
+          <input type="text" id="utmTerm" placeholder="e.g. founders, growth-leads, web2app-keyword">
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT: PREVIEW -->
+    <div>
+      <div class="preview">
+        <div class="panel">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: 10px;">
+            <div class="section-label" style="margin-bottom:0;">Generated link</div>
+            <span id="hubspotTag" class="hubspot-tag warn"><span class="dot"></span>pick a channel</span>
+          </div>
+
+          <div class="url-block" id="urlBlock">
+            <span class="empty">configure the form to generate your URL…</span>
+          </div>
+
+          <div class="copy-row">
+            <button class="copy" id="copyUrlBtn">Copy URL</button>
+            <button class="copy secondary" id="copyShortBtn">Copy params only</button>
+          </div>
+
+          <table class="params-table">
+            <tr><th>utm_source</th><td id="outSource" class="muted">—</td></tr>
+            <tr><th>utm_medium</th><td id="outMedium" class="muted">—</td></tr>
+            <tr><th>utm_campaign</th><td id="outCampaign" class="muted">—</td></tr>
+            <tr><th>utm_content</th><td id="outContent" class="muted">—</td></tr>
+            <tr><th>utm_term</th><td id="outTerm" class="muted">—</td></tr>
+          </table>
+
+          <div id="campaignNameWrap" style="display:none;">
+            <div class="campaign-preview">
+              <div>
+                <div class="label-mini">Campaign Manager name</div>
+                <div id="campaignName">—</div>
+              </div>
+              <button class="copy" id="copyCampaignBtn" style="flex:0 0 auto; padding: 8px 12px; font-size:12px;">Copy</button>
+            </div>
+            <div class="footnote" id="campaignHint"></div>
+          </div>
+
+          <div class="meta-row">
+            <span>HubSpot maps to <b id="hubspotCategory">—</b></span>
+            <button class="reset-link" id="resetBtn">reset all</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ============================================================
+// CHANNEL DEFINITIONS — single source of truth for HubSpot mapping
+// ============================================================
+const CHANNELS = {
+  li_ads:       { name: 'LinkedIn Ads',          source: 'linkedin',  medium: 'paid_social', short: 'li',     type: 'paid',     hubspot: 'Paid Social',     hsTag: 'ok',   showCampaignName: true,  needsAuthor: false },
+  li_org:       { name: 'LinkedIn Org (Company)', source: 'linkedin',  medium: 'social',      short: 'li',     type: 'org',      hubspot: 'Organic Social',  hsTag: 'ok',   showCampaignName: false, needsAuthor: false },
+  li_employee:  { name: 'LinkedIn Employee Post', source: 'linkedin',  medium: 'social',      short: 'li',     type: 'employee', hubspot: 'Organic Social',  hsTag: 'ok',   showCampaignName: false, needsAuthor: true  },
+  x_ads:        { name: 'Twitter / X Ads',        source: 'twitter',   medium: 'paid_social', short: 'x',      type: 'paid',     hubspot: 'Paid Social',     hsTag: 'ok',   showCampaignName: true,  needsAuthor: false },
+  x_org:        { name: 'Twitter / X Org',        source: 'twitter',   medium: 'social',      short: 'x',      type: 'org',      hubspot: 'Organic Social',  hsTag: 'ok',   showCampaignName: false, needsAuthor: false },
+  meta_ads:     { name: 'Meta Ads',               source: 'facebook',  medium: 'paid_social', short: 'meta',   type: 'paid',     hubspot: 'Paid Social',     hsTag: 'ok',   showCampaignName: true,  needsAuthor: false },
+  google_ads:   { name: 'Google Ads',             source: 'google',    medium: 'cpc',         short: 'google', type: 'paid',     hubspot: 'Paid Search',     hsTag: 'ok',   showCampaignName: true,  needsAuthor: false },
+  yt_org:       { name: 'YouTube Org',            source: 'youtube',   medium: 'social',      short: 'yt',     type: 'org',      hubspot: 'Organic Social',  hsTag: 'ok',   showCampaignName: false, needsAuthor: false },
+  email:        { name: 'Email / Newsletter',     source: 'newsletter',medium: 'email',       short: 'email',  type: 'email',    hubspot: 'Email Marketing', hsTag: 'ok',   showCampaignName: false, needsAuthor: false },
+  referral:     { name: 'Referral / Partner',     source: '__partner', medium: 'referral',    short: 'ref',    type: 'partner',  hubspot: 'Referrals',       hsTag: 'ok',   showCampaignName: false, needsAuthor: false },
+  ebook:        { name: 'Ebook / Lead magnet',    source: '__slot',    medium: 'ebook',       short: 'ebook',  type: 'asset',    hubspot: 'Other Campaigns', hsTag: 'warn', showCampaignName: false, needsAuthor: false },
+  event:        { name: 'Event / Conference',     source: '__event',   medium: 'event',       short: 'event',  type: 'offline',  hubspot: 'Other Campaigns', hsTag: 'warn', showCampaignName: false, needsAuthor: false },
+  blog:         { name: 'Blog / Internal link',   source: 'blog',      medium: 'internal',    short: 'blog',   type: 'org',      hubspot: 'Other Campaigns', hsTag: 'warn', showCampaignName: false, needsAuthor: false }
+};
+
+const TOPICS = [
+  'paywalls','churn','billing','payments','retries','web2app','ltv',
+  'retargeting','onboarding','ai','quiz-funnels','demo','brand','bio',
+  'aim-conf','case-study','webinar','report-2026'
+];
+
+const AUTHORS = [
+  { id: 'andrey-shakhtin', label: 'Andrey' },
+  { id: 'nurs-mukhamedia', label: 'Nurs' },
+  { id: 'david-maul',      label: 'David' },
+  { id: 'matty-friedman',  label: 'Matty' },
+  { id: 'marina-trypolskaya', label: 'Marina' },
+  { id: 'anna-suvorova',   label: 'Anna' },
+  { id: 'aliaksandra-subach', label: 'Aliaksandra' },
+  { id: 'kate',            label: 'Kate' }
+];
+
+const EBOOK_SLOTS = ['cover','footer','landing','marketing-slide','infrastructure-slide','ltv-slide','case-study-slide','upsells-slide','onboarding-slide','payments-slide','analytics-slide','benchmarks-slide','checklist-slide','final-slide'];
+
+// ============================================================
+// STATE
+// ============================================================
+const state = {
+  destUrl: 'https://funnelfox.com/',
+  channelKey: null,
+  topic: '',
+  customTopic: '',
+  geo: '',
+  lang: '',
+  utmContent: '',
+  utmTerm: '',
+  // conditional
+  author: '',
+  partner: '',
+  emailCampaign: '',
+  ebookSlot: '',
+  ebookName: '',
+  eventName: '',
+  blogSource: ''
+};
+
+// ============================================================
+// RENDERING
+// ============================================================
+function renderChannels() {
+  const grid = document.getElementById('channelGrid');
+  grid.innerHTML = Object.entries(CHANNELS).map(([key, c]) => `
+    <div class="channel-btn ${state.channelKey === key ? 'active' : ''}" data-channel="${key}">
+      <span class="name">${c.name}</span>
+      <span class="meta">${c.source.startsWith('__') ? c.source.replace('__','') + ' →' : c.source} / ${c.medium}</span>
+    </div>
+  `).join('');
+  grid.querySelectorAll('.channel-btn').forEach(el => {
+    el.addEventListener('click', () => {
+      state.channelKey = el.dataset.channel;
+      // reset conditional fields on channel change
+      state.partner = ''; state.emailCampaign = ''; state.ebookSlot = ''; state.ebookName = '';
+      state.eventName = ''; state.blogSource = ''; state.author = '';
+      renderAll();
+    });
+  });
+}
+
+function renderTopics() {
+  const wrap = document.getElementById('topicPills');
+  wrap.innerHTML = TOPICS.map(t =>
+    `<span class="pill accent ${state.topic === t ? 'active' : ''}" data-topic="${t}">${t}</span>`
+  ).join('');
+  wrap.querySelectorAll('.pill').forEach(el => {
+    el.addEventListener('click', () => {
+      state.topic = (state.topic === el.dataset.topic) ? '' : el.dataset.topic;
+      state.customTopic = '';
+      document.getElementById('customTopic').value = '';
+      renderAll();
+    });
+  });
+}
+
+function renderConditional() {
+  const panel = document.getElementById('conditionalPanel');
+  const label = document.getElementById('conditionalLabel');
+  const body = document.getElementById('conditionalBody');
+  const ch = CHANNELS[state.channelKey];
+
+  if (!ch) { panel.style.display = 'none'; return; }
+
+  let html = '';
+  let labelText = '';
+
+  if (ch.needsAuthor) {
+    labelText = 'Author <span class="hint">goes into utm_content</span>';
+    html = `<div class="author-grid" id="authorGrid">
+      ${AUTHORS.map(a => `<button class="author-btn ${state.author === a.id ? 'active' : ''}" data-author="${a.id}">${a.label}<br><span style="opacity:0.6">${a.id}</span></button>`).join('')}
+    </div>
+    <div style="margin-top:10px;"><input type="text" id="customAuthor" placeholder="or type custom handle (lowercase-hyphens)" value="${state.author && !AUTHORS.find(a=>a.id===state.author) ? state.author : ''}"></div>`;
+  } else if (state.channelKey === 'referral') {
+    labelText = 'Partner / Referrer name <span class="hint">becomes utm_source</span>';
+    html = `<input type="text" id="partnerInput" placeholder="e.g. growthgems, appmasters, steve-young" value="${state.partner}">
+    <div class="footnote">Use the partner's slug, not a domain. Lowercase, hyphens only.</div>`;
+  } else if (state.channelKey === 'email') {
+    labelText = 'Email campaign name <span class="hint">becomes utm_campaign base</span>';
+    html = `<input type="text" id="emailCampaignInput" placeholder="e.g. webinar-promo, sdr-team, q1-newsletter" value="${state.emailCampaign}">
+    <div class="footnote">Topic pills below still work, but this overrides the campaign slug for emails.</div>`;
+  } else if (state.channelKey === 'ebook') {
+    labelText = 'Ebook details';
+    html = `<div class="field-row">
+      <div>
+        <div class="section-label" style="margin-bottom:6px;">Slot / placement <span class="hint">→ utm_source</span></div>
+        <select id="ebookSlotSelect" style="width:100%; padding:11px 13px; border:1px solid var(--line-strong); border-radius:8px; font-family: var(--mono); font-size:13px; background:#fff;">
+          <option value="">— pick slot —</option>
+          ${EBOOK_SLOTS.map(s => `<option value="${s}" ${state.ebookSlot===s?'selected':''}>${s}</option>`).join('')}
+        </select>
+      </div>
+      <div>
+        <div class="section-label" style="margin-bottom:6px;">Ebook name <span class="hint">→ utm_campaign</span></div>
+        <input type="text" id="ebookNameInput" placeholder="e.g. payments-guide, web2app-guide" value="${state.ebookName}">
+      </div>
+    </div>`;
+  } else if (state.channelKey === 'event') {
+    labelText = 'Event name <span class="hint">becomes utm_source</span>';
+    html = `<input type="text" id="eventNameInput" placeholder="e.g. aim-conference, aps-berlin-2026, ags-london" value="${state.eventName}">
+    <div class="footnote">Use the event slug. Topic below becomes the campaign (e.g. signup, demo, qr).</div>`;
+  } else if (state.channelKey === 'blog') {
+    labelText = 'Blog source <span class="hint">where the link sits</span>';
+    html = `<input type="text" id="blogSourceInput" placeholder="default: blog (or e.g. funnelfox-billing-page)" value="${state.blogSource}">
+    <div class="footnote">Leave empty for generic blog links. Set when the link comes from a specific page or section.</div>`;
+  } else {
+    panel.style.display = 'none';
+    return;
+  }
+
+  panel.style.display = 'block';
+  label.innerHTML = labelText;
+  body.innerHTML = html;
+
+  // wire up listeners
+  if (ch.needsAuthor) {
+    body.querySelectorAll('[data-author]').forEach(el => el.addEventListener('click', () => {
+      state.author = el.dataset.author;
+      document.getElementById('customAuthor').value = '';
+      renderAll();
+    }));
+    document.getElementById('customAuthor').addEventListener('input', e => {
+      state.author = e.target.value.trim().toLowerCase().replace(/\s+/g, '-');
+      document.querySelectorAll('[data-author]').forEach(b => b.classList.remove('active'));
+      renderPreview();
+    });
+  }
+  const partnerEl = document.getElementById('partnerInput');
+  if (partnerEl) partnerEl.addEventListener('input', e => { state.partner = slug(e.target.value); renderPreview(); });
+  const emailEl = document.getElementById('emailCampaignInput');
+  if (emailEl) emailEl.addEventListener('input', e => { state.emailCampaign = slug(e.target.value); renderPreview(); });
+  const ebookSlotEl = document.getElementById('ebookSlotSelect');
+  if (ebookSlotEl) ebookSlotEl.addEventListener('change', e => { state.ebookSlot = e.target.value; renderPreview(); });
+  const ebookNameEl = document.getElementById('ebookNameInput');
+  if (ebookNameEl) ebookNameEl.addEventListener('input', e => { state.ebookName = slug(e.target.value); renderPreview(); });
+  const eventEl = document.getElementById('eventNameInput');
+  if (eventEl) eventEl.addEventListener('input', e => { state.eventName = slug(e.target.value); renderPreview(); });
+  const blogEl = document.getElementById('blogSourceInput');
+  if (blogEl) blogEl.addEventListener('input', e => { state.blogSource = slug(e.target.value); renderPreview(); });
+}
+
+// ============================================================
+// COMPUTE UTM VALUES
+// ============================================================
+function slug(s) {
+  return (s || '').toString().trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9_\-]/g, '');
+}
+
+function compute() {
+  const ch = state.channelKey ? CHANNELS[state.channelKey] : null;
+  if (!ch) return null;
+
+  // resolve source
+  let source = ch.source;
+  if (source === '__partner') source = state.partner || '';
+  if (source === '__slot')    source = state.ebookSlot || '';
+  if (source === '__event')   source = state.eventName || '';
+  if (state.channelKey === 'blog' && state.blogSource) source = state.blogSource;
+
+  const medium = ch.medium;
+
+  // resolve topic
+  const topic = state.customTopic || state.topic;
+
+  // resolve campaign
+  let campaign = '';
+  if (state.channelKey === 'email') {
+    campaign = state.emailCampaign || topic || '';
+  } else if (state.channelKey === 'ebook') {
+    campaign = state.ebookName || topic || '';
+  } else {
+    // standard pattern: channel_type_topic_geo_lang
+    const parts = [ch.short, ch.type, topic, state.geo, state.lang].filter(Boolean);
+    campaign = parts.join('_');
+  }
+
+  // resolve content (author auto-fills for employee posts unless manually overridden)
+  let content = state.utmContent;
+  if (!content && state.channelKey === 'li_employee' && state.author) {
+    content = state.author;
+  }
+
+  return {
+    source, medium, campaign,
+    content: content || '',
+    term: state.utmTerm || '',
+    hubspot: ch.hubspot,
+    hsTag: ch.hsTag,
+    channelName: ch.name,
+    showCampaignName: ch.showCampaignName,
+    campaignNameForAds: campaign
+  };
+}
+
+// ============================================================
+// PREVIEW RENDER
+// ============================================================
+function renderPreview() {
+  const c = compute();
+  const block = document.getElementById('urlBlock');
+  const tagEl = document.getElementById('hubspotTag');
+  const catEl = document.getElementById('hubspotCategory');
+  const cnWrap = document.getElementById('campaignNameWrap');
+  const cnEl   = document.getElementById('campaignName');
+  const cnHint = document.getElementById('campaignHint');
+
+  // table
+  const setCell = (id, val) => {
+    const el = document.getElementById(id);
+    if (val) { el.textContent = val; el.classList.remove('muted'); }
+    else { el.textContent = '—'; el.classList.add('muted'); }
+  };
+
+  if (!c) {
+    block.innerHTML = '<span class="empty">configure the form to generate your URL…</span>';
+    tagEl.className = 'hubspot-tag warn';
+    tagEl.innerHTML = '<span class="dot"></span>pick a channel';
+    catEl.textContent = '—';
+    setCell('outSource', ''); setCell('outMedium', ''); setCell('outCampaign', '');
+    setCell('outContent', ''); setCell('outTerm', '');
+    cnWrap.style.display = 'none';
+    return;
+  }
+
+  // build URL
+  const dest = state.destUrl.trim() || 'https://funnelfox.com/';
+  const params = [];
+  const pushParam = (k, v) => { if (v) params.push([k, v]); };
+  pushParam('utm_source', c.source);
+  pushParam('utm_medium', c.medium);
+  pushParam('utm_campaign', c.campaign);
+  pushParam('utm_content', c.content);
+  pushParam('utm_term', c.term);
+
+  const sep = dest.includes('?') ? '&' : '?';
+  const queryStr = params.map(([k,v]) => `${k}=${encodeURIComponent(v)}`).join('&');
+  const fullUrl = params.length ? `${dest}${sep}${queryStr}` : dest;
+
+  // colorized URL
+  const escaped = (s) => (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  let html = `<span class="scheme">${escaped(dest)}</span>`;
+  if (params.length) {
+    html += `<span class="amp">${sep}</span>`;
+    html += params.map(([k,v]) => `<span class="key">${k}</span>=<span class="val">${escaped(encodeURIComponent(v))}</span>`).join('<span class="amp">&amp;</span>');
+  }
+  block.innerHTML = html;
+
+  setCell('outSource', c.source);
+  setCell('outMedium', c.medium);
+  setCell('outCampaign', c.campaign);
+  setCell('outContent', c.content);
+  setCell('outTerm', c.term);
+
+  // hubspot tag
+  tagEl.className = `hubspot-tag ${c.hsTag}`;
+  tagEl.innerHTML = `<span class="dot"></span>${c.hubspot}`;
+  catEl.textContent = c.hubspot;
+
+  // campaign name preview for ads
+  if (c.showCampaignName && c.campaignNameForAds) {
+    cnWrap.style.display = 'block';
+    cnEl.textContent = c.campaignNameForAds;
+    cnHint.textContent = `Use this exact name in ${c.channelName.replace(' Ads','')} Campaign Manager so spend matches HubSpot attribution.`;
+  } else {
+    cnWrap.style.display = 'none';
+  }
+
+  // store full url for copy buttons
+  block.dataset.fullUrl = fullUrl;
+  block.dataset.queryStr = params.length ? `${sep}${queryStr}` : '';
+}
+
+function renderAll() {
+  renderChannels();
+  renderTopics();
+  renderConditional();
+  renderPreview();
+}
+
+// ============================================================
+// EVENTS
+// ============================================================
+document.getElementById('destUrl').addEventListener('input', e => {
+  state.destUrl = e.target.value;
+  renderPreview();
+});
+document.getElementById('customTopic').addEventListener('input', e => {
+  state.customTopic = slug(e.target.value);
+  if (state.customTopic) state.topic = '';
+  document.querySelectorAll('#topicPills .pill').forEach(p => p.classList.remove('active'));
+  renderPreview();
+});
+document.getElementById('utmContent').addEventListener('input', e => {
+  state.utmContent = slug(e.target.value);
+  renderPreview();
+});
+document.getElementById('utmTerm').addEventListener('input', e => {
+  state.utmTerm = slug(e.target.value);
+  renderPreview();
+});
+document.querySelectorAll('#geoPills .pill').forEach(p => {
+  p.addEventListener('click', () => {
+    document.querySelectorAll('#geoPills .pill').forEach(x => x.classList.remove('active'));
+    p.classList.add('active');
+    state.geo = p.dataset.geo;
+    renderPreview();
+  });
+});
+document.querySelectorAll('#langPills .pill').forEach(p => {
+  p.addEventListener('click', () => {
+    document.querySelectorAll('#langPills .pill').forEach(x => x.classList.remove('active'));
+    p.classList.add('active');
+    state.lang = p.dataset.lang;
+    renderPreview();
+  });
+});
+
+function copyText(text, btn) {
+  navigator.clipboard.writeText(text).then(() => {
+    const original = btn.textContent;
+    btn.textContent = 'Copied ✓';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = original; btn.classList.remove('copied'); }, 1400);
+  });
+}
+document.getElementById('copyUrlBtn').addEventListener('click', e => {
+  const url = document.getElementById('urlBlock').dataset.fullUrl;
+  if (url) copyText(url, e.target);
+});
+document.getElementById('copyShortBtn').addEventListener('click', e => {
+  const q = document.getElementById('urlBlock').dataset.queryStr;
+  if (q) copyText(q, e.target);
+});
+document.getElementById('copyCampaignBtn').addEventListener('click', e => {
+  copyText(document.getElementById('campaignName').textContent, e.target);
+});
+document.getElementById('resetBtn').addEventListener('click', () => {
+  Object.assign(state, {
+    destUrl: 'https://funnelfox.com/', channelKey: null, topic: '', customTopic: '',
+    geo: '', lang: '', utmContent: '', utmTerm: '', author: '', partner: '',
+    emailCampaign: '', ebookSlot: '', ebookName: '', eventName: '', blogSource: ''
+  });
+  document.getElementById('destUrl').value = state.destUrl;
+  document.getElementById('customTopic').value = '';
+  document.getElementById('utmContent').value = '';
+  document.getElementById('utmTerm').value = '';
+  document.querySelectorAll('#geoPills .pill').forEach((p,i) => p.classList.toggle('active', i === 0));
+  document.querySelectorAll('#langPills .pill').forEach((p,i) => p.classList.toggle('active', i === 0));
+  renderAll();
+});
+
+// initial render
+renderAll();
+</script>
+</body>
+</html>
