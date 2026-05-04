@@ -386,6 +386,34 @@
     font-family: var(--sans);
   }
   .reset-link:hover { color: var(--accent); }
+
+  .abm-toggle {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    cursor: pointer;
+    user-select: none;
+    padding: 4px 0;
+  }
+  .abm-toggle input[type=checkbox] {
+    margin: 3px 0 0;
+    width: 16px;
+    height: 16px;
+    accent-color: var(--accent);
+    cursor: pointer;
+    flex: 0 0 auto;
+  }
+  .abm-toggle-label { line-height: 1.35; }
+  .abm-toggle-title { font-size: 13px; font-weight: 500; color: var(--ink); display: block; }
+  .abm-toggle-hint { font-size: 11.5px; color: var(--ink-muted); }
+  .abm-toggle-hint code {
+    background: var(--accent-soft);
+    color: var(--accent);
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-family: var(--mono);
+    font-size: 11px;
+  }
 </style>
 </head>
 <body>
@@ -400,7 +428,7 @@
       </div>
     </div>
     <div class="pattern-hint">
-      <b>utm_campaign</b> = [channel]_[type]_[topic]_[geo]_[lang]
+      <b>utm_campaign</b> = [channel]_[type]_[topic]_[stage]_[geo]_[lang][_abm]
     </div>
   </header>
 
@@ -458,6 +486,25 @@
                 <span class="pill tiny" data-lang="pt">pt</span>
               </div>
             </div>
+          </div>
+        </div>
+
+        <div class="conditional">
+          <label class="abm-toggle" for="abmCheckbox">
+            <input type="checkbox" id="abmCheckbox">
+            <span class="abm-toggle-label">
+              <span class="abm-toggle-title">ABM campaign</span>
+              <span class="abm-toggle-hint">adds <code>_abm</code> suffix to utm_campaign</span>
+            </span>
+          </label>
+          <div id="abmStageWrap" style="display:none; margin-top: 12px;">
+            <div class="section-label">Funnel stage <span class="hint">creative + messaging stage</span></div>
+            <div class="pills" id="stagePills">
+              <span class="pill tiny" data-stage="tofu">tofu</span>
+              <span class="pill tiny" data-stage="mofu">mofu</span>
+              <span class="pill tiny" data-stage="bofu">bofu</span>
+            </div>
+            <div class="footnote" style="margin-top:8px;">Stage slots into utm_campaign before geo, so creatives at each stage stay separable in HubSpot.</div>
           </div>
         </div>
       </div>
@@ -573,6 +620,8 @@ const state = {
   customTopic: '',
   geo: '',
   lang: '',
+  stage: '',
+  abm: false,
   utmContent: '',
   utmTerm: '',
   // conditional
@@ -733,12 +782,15 @@ function compute() {
   let campaign = '';
   if (state.channelKey === 'email') {
     campaign = state.emailCampaign || topic || '';
+    if (state.abm) campaign = campaign ? `${campaign}_abm` : 'abm';
   } else if (state.channelKey === 'ebook') {
     campaign = state.ebookName || topic || '';
+    if (state.abm) campaign = campaign ? `${campaign}_abm` : 'abm';
   } else {
-    // standard pattern: channel_type_topic_geo_lang
-    const parts = [ch.short, ch.type, topic, state.geo, state.lang].filter(Boolean);
+    // standard pattern: channel_type_topic_stage_geo_lang[_abm]
+    const parts = [ch.short, ch.type, topic, state.stage, state.geo, state.lang].filter(Boolean);
     campaign = parts.join('_');
+    if (state.abm) campaign = campaign ? `${campaign}_abm` : 'abm';
   }
 
   // resolve content (author auto-fills for employee posts unless manually overridden)
@@ -881,6 +933,28 @@ document.querySelectorAll('#langPills .pill').forEach(p => {
     renderPreview();
   });
 });
+document.getElementById('abmCheckbox').addEventListener('change', e => {
+  state.abm = e.target.checked;
+  document.getElementById('abmStageWrap').style.display = state.abm ? 'block' : 'none';
+  if (!state.abm) {
+    state.stage = '';
+    document.querySelectorAll('#stagePills .pill').forEach(x => x.classList.remove('active'));
+  }
+  renderPreview();
+});
+document.querySelectorAll('#stagePills .pill').forEach(p => {
+  p.addEventListener('click', () => {
+    if (state.stage === p.dataset.stage) {
+      state.stage = '';
+      p.classList.remove('active');
+    } else {
+      document.querySelectorAll('#stagePills .pill').forEach(x => x.classList.remove('active'));
+      p.classList.add('active');
+      state.stage = p.dataset.stage;
+    }
+    renderPreview();
+  });
+});
 
 function copyText(text, btn) {
   navigator.clipboard.writeText(text).then(() => {
@@ -904,13 +978,17 @@ document.getElementById('copyCampaignBtn').addEventListener('click', e => {
 document.getElementById('resetBtn').addEventListener('click', () => {
   Object.assign(state, {
     destUrl: 'https://funnelfox.com/', channelKey: null, topic: '', customTopic: '',
-    geo: '', lang: '', utmContent: '', utmTerm: '', author: '', partner: '',
+    geo: '', lang: '', stage: '', abm: false,
+    utmContent: '', utmTerm: '', author: '', partner: '',
     emailCampaign: '', ebookSlot: '', ebookName: '', eventName: '', blogSource: ''
   });
   document.getElementById('destUrl').value = state.destUrl;
   document.getElementById('customTopic').value = '';
   document.getElementById('utmContent').value = '';
   document.getElementById('utmTerm').value = '';
+  document.getElementById('abmCheckbox').checked = false;
+  document.getElementById('abmStageWrap').style.display = 'none';
+  document.querySelectorAll('#stagePills .pill').forEach(x => x.classList.remove('active'));
   document.querySelectorAll('#geoPills .pill').forEach((p,i) => p.classList.toggle('active', i === 0));
   document.querySelectorAll('#langPills .pill').forEach((p,i) => p.classList.toggle('active', i === 0));
   renderAll();
